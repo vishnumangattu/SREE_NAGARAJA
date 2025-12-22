@@ -1,0 +1,102 @@
+/* Temple Counter Specific Styles */
+
+/* Print Styles */
+@media print {
+
+    /* Hide everything by default */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Exceptions: Print Area */
+    #print-area,
+    #print-area * {
+        visibility: visible;
+    }
+
+    #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Hide the main app UI */
+    .no-print,
+    .sidebar,
+    .header,
+    .page-content,
+    .main-content,
+    button {
+        display: none !important;
+    }
+}
+
+/* Screen Only - Hide Print Area */
+@media screen {
+    #print-area {
+        display: none;
+    }
+}
+
+/* Bill Container for Print */
+.bill-container {
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    width: 300px;
+    /* Thermal printer width usually */
+    margin: 0 auto;
+}
+
+.bill-title {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed black;
+    padding-bottom: 5px;
+}
+
+.bill-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.bill-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.85rem;
+}
+
+.bill-table th {
+    text-align: left;
+    border-bottom: 1px dashed black;
+    padding: 2px 0;
+}
+
+.bill-table td {
+    padding: 2px 0;
+}
+
+.total {
+    border-top: 1px dashed black;
+    padding-top: 5px;
+    text-align: right;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.thank-you {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+
+
