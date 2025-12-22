@@ -5,6 +5,7 @@ import { Trash2 } from 'lucide-react';
 const DeletedReceipts = () => {
     const [deletedItems, setDeletedItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [filterDate, setFilterDate] = useState('');
 
     useEffect(() => {
         const fetchDeleted = async () => {
@@ -20,17 +21,40 @@ const DeletedReceipts = () => {
         fetchDeleted();
     }, []);
 
+    const filteredItems = filterDate
+        ? deletedItems.filter(item => item.deletedAt && item.deletedAt.startsWith(filterDate))
+        : deletedItems;
+
     if (loading) return <div>Loading logs...</div>;
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Trash2 /> Deleted Receipts Log
-            </h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Trash2 /> Deleted Receipts Log
+                </h1>
+                <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium">Filter by Date:</label>
+                    <input
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                        className="p-2 border rounded"
+                    />
+                    {filterDate && (
+                        <button
+                            onClick={() => setFilterDate('')}
+                            className="text-sm text-red-500 hover:text-red-700"
+                        >
+                            Clear
+                        </button>
+                    )}
+                </div>
+            </div>
 
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '1rem 1.5rem', backgroundColor: '#fcfcfc', borderBottom: '1px solid var(--border-color)' }}>
-                    <h2 style={{ fontSize: '1.1rem' }}>Audit Log</h2>
+                    <h2 style={{ fontSize: '1.1rem' }}>Audit Log ({filteredItems.length} found)</h2>
                 </div>
                 <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
                     <table>
@@ -45,7 +69,7 @@ const DeletedReceipts = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {deletedItems.map((item) => (
+                            {filteredItems.map((item) => (
                                 <tr key={item._id} className="row-deleted">
                                     <td style={{ fontFamily: 'monospace' }}>#{item.receiptNumber}</td>
                                     <td className="font-bold">₹ {item.totalAmount}</td>
@@ -59,9 +83,9 @@ const DeletedReceipts = () => {
                                     <td className="text-sm text-muted italic">"{item.deleteReason}"</td>
                                 </tr>
                             ))}
-                            {deletedItems.length === 0 && (
+                            {filteredItems.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="text-center text-muted p-8">No deleted receipts found.</td>
+                                    <td colSpan="6" className="text-center text-muted p-8">No deleted receipts found for this selection.</td>
                                 </tr>
                             )}
                         </tbody>
