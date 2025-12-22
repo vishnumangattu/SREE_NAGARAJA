@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import api from '../../utils/api';
 import AuthContext from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Edit2, Trash2, Save, X, Check, Filter } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Check, Filter, Ban } from 'lucide-react';
 import TransliterationInput from '../../components/TransliterationInput';
 import { nakshatraList } from '../../utils/constants';
 
@@ -171,6 +171,21 @@ const ManagerReceipts = () => {
         }
     };
 
+    // Block Logic
+    const handleBlock = async (id, currentStatus) => {
+        const action = currentStatus ? "Unblock" : "Block";
+        if (!window.confirm(`Are you sure you want to ${action} this receipt?`)) return;
+
+        try {
+            await api.put(`/receipts/${id}/block`);
+            alert(`Receipt ${action}ed`);
+            fetchData();
+        } catch (error) {
+            console.error("Block failed", error);
+            alert(`Failed to ${action} receipt`);
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -258,8 +273,11 @@ const ManagerReceipts = () => {
                                 const isEditing = editingId === rowKey;
 
                                 return (
-                                    <tr key={rowKey} className={row.itemIndex > 0 ? "border-t-0" : ""}>
-                                        <td className="font-mono text-muted">#{row.receiptNumber}</td>
+                                    <tr key={rowKey} className={row.itemIndex > 0 ? "border-t-0" : ""} style={row.isBlocked ? { backgroundColor: '#fff1f2' } : {}}>
+                                        <td className="font-mono text-muted">
+                                            #{row.receiptNumber}
+                                            {row.isBlocked && <span className="block text-xs text-red-600 font-bold">BLOCKED</span>}
+                                        </td>
                                         <td>
                                             {isEditing ? (
                                                 <input
@@ -375,6 +393,14 @@ const ManagerReceipts = () => {
                                                     <>
                                                         <button onClick={() => startEdit(row, row.itemIndex)} className="action-edit" title="Edit">
                                                             <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleBlock(row._id, row.isBlocked)}
+                                                            className={`text-sm ${row.isBlocked ? 'text-green-600' : 'text-orange-600'}`}
+                                                            title={row.isBlocked ? "Unblock" : "Block"}
+                                                            style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+                                                        >
+                                                            <Ban size={16} />
                                                         </button>
                                                         <button onClick={() => handleDelete(row._id)} className="action-delete" title="Delete Entire Receipt">
                                                             <Trash2 size={16} />

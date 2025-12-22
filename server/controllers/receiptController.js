@@ -116,6 +116,14 @@ const getReceipts = async (req, res) => {
         };
     }
 
+    if (req.query.vazhipadu) {
+        // Partial match for vazhipadu code/name
+        query.$or = [
+            { vazhipadu: { $regex: req.query.vazhipadu, $options: 'i' } },
+            { vazhipaduType: { $regex: req.query.vazhipadu, $options: 'i' } }
+        ];
+    }
+
     let queryBuilder = Receipt.find(query)
         .populate('createdBy', 'name username')
         .sort({ createdAt: -1 });
@@ -385,4 +393,20 @@ const updateReceipt = async (req, res) => {
     res.json(updatedReceipt);
 };
 
-module.exports = { createReceipt, getReceipts, getReceiptById, deleteReceipt, getManagerStats, updateReceipt, getUserPerformanceStats };
+// @desc    Toggle Block Status
+// @route   PUT /api/receipts/:id/block
+// @access  Private/Manager/Admin
+const toggleBlockStatus = async (req, res) => {
+    const receipt = await Receipt.findById(req.params.id);
+
+    if (receipt) {
+        receipt.isBlocked = !receipt.isBlocked;
+        const updatedReceipt = await receipt.save();
+        res.json(updatedReceipt);
+    } else {
+        res.status(404);
+        throw new Error('Receipt not found');
+    }
+};
+
+module.exports = { createReceipt, getReceipts, getReceiptById, deleteReceipt, getManagerStats, updateReceipt, getUserPerformanceStats, toggleBlockStatus };

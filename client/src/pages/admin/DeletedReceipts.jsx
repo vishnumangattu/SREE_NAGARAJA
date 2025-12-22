@@ -60,12 +60,12 @@ const DeletedReceipts = () => {
                     <table>
                         <thead>
                             <tr>
-                                <th>Receipt #</th>
-                                <th>Amount</th>
-                                <th>Payment Type</th>
-                                <th>Printed By</th>
-                                <th>Deleted At</th>
-                                <th>Reason</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Receipt #</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Amount</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Payment Type</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Printed By</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Deleted At</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', backgroundColor: '#f8fafc', color: '#475569', fontWeight: '600', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e2e8f0' }}>Reason</th>
                             </tr>
                         </thead>
                         <tbody>

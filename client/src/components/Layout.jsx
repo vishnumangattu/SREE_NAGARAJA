@@ -1,12 +1,14 @@
 import { useContext, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { Home, PlusCircle, List, LogOut, Menu, X, Users, Trash2, Clock } from 'lucide-react';
+import { Home, PlusCircle, List, LogOut, Menu, X, Users, Trash2, Clock, Key, Printer } from 'lucide-react';
+import ChangePasswordModal from './ChangePasswordModal';
 
 const Layout = () => {
     const { user, logout } = useContext(AuthContext);
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -21,12 +23,14 @@ const Layout = () => {
         ],
         manager: [
             { name: 'Dashboard', path: '/manager', icon: <Home size={20} /> },
+            { name: 'New Receipt', path: '/counter/create', icon: <PlusCircle size={20} /> },
             { name: 'Manage Receipts', path: '/manager/receipts', icon: <List size={20} /> },
             { name: 'Manage Vazhipads', path: '/manager/vazhipads', icon: <List size={20} /> },
             { name: 'Manage Staff', path: '/manager/staff', icon: <List size={20} /> },
             { name: 'User Performance', path: '/manager/user-performance', icon: <Users size={20} /> },
             { name: 'Closing Reports', path: '/manager/closing-reports', icon: <List size={20} /> },
             { name: 'Daily Pooja List', path: '/manager/daily-list', icon: <List size={20} /> },
+            { name: 'Posting Covers', path: '/manager/posting-covers', icon: <Printer size={20} /> },
         ],
         superadmin: [
             { name: 'Admin Dashboard', path: '/admin', icon: <Home size={20} /> },
@@ -38,6 +42,7 @@ const Layout = () => {
             { name: 'Closing Reports', path: '/manager/closing-reports', icon: <List size={20} /> },
             { name: 'Daily Pooja List', path: '/manager/daily-list', icon: <List size={20} /> },
             { name: 'Deleted Logs', path: '/admin/deleted-receipts', icon: <Trash2 size={20} /> },
+            { name: 'Posting Covers', path: '/manager/posting-covers', icon: <Printer size={20} /> },
         ],
         stall: [
             { name: 'Stall Dashboard', path: '/stall', icon: <Home size={20} /> },
@@ -65,6 +70,14 @@ const Layout = () => {
                     ))}
                 </nav>
                 <div style={{ padding: '1rem', marginTop: 'auto', borderTop: '1px solid var(--border-color)' }}>
+                    <button
+                        onClick={() => setShowPasswordModal(true)}
+                        className="logout-btn mb-2"
+                        title="Change Password"
+                    >
+                        <Key size={20} />
+                        <span style={{ marginLeft: '0.75rem' }}>Change Password</span>
+                    </button>
                     <button
                         onClick={logout}
                         className="logout-btn"
@@ -95,6 +108,9 @@ const Layout = () => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* Change Password Modal */}
+            {showPasswordModal && <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />}
 
             {/* Overlay for mobile */}
             {isSidebarOpen && (

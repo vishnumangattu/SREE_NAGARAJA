@@ -61,4 +61,22 @@ const deleteUser = async (req, res) => {
     }
 };
 
-module.exports = { getUsers, createUser, deleteUser };
+// @desc    Change user password
+// @route   PUT /api/users/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if (user && (await user.matchPassword(currentPassword))) {
+        user.password = newPassword;
+        await user.save();
+        res.json({ message: 'Password updated successfully' });
+    } else {
+        res.status(401);
+        throw new Error('Invalid current password');
+    }
+};
+
+module.exports = { getUsers, createUser, deleteUser, changePassword };

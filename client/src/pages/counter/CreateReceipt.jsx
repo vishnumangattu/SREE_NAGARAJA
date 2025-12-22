@@ -403,6 +403,14 @@ function TempleCounter() {
   const submitHandler = async (e, shouldPrint = false) => {
     if (e && e.preventDefault) e.preventDefault();
 
+    // Check for Mandatory Address for 'np'
+    if (formData.vazhipadu.toLowerCase().includes('np')) {
+      if (!postingData.address || postingData.address.trim() === "") {
+        alert("Please enter Postal Address for this Vazhipadu (NP).");
+        return;
+      }
+    }
+
     // Determine current vazhipad object for checking flags
     const currentVazhipad = vazhipadItems.find(v =>
       v.name === formData.vazhipaduType ||

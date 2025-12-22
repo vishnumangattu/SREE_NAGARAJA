@@ -58,6 +58,10 @@ const receiptSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
         },
+        isBlocked: {
+            type: Boolean,
+            default: false
+        },
         deletedAt: {
             type: Date,
         },
