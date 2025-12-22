@@ -3,6 +3,7 @@ import api from '../../utils/api';
 import AuthContext from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { Edit2, Trash2, Save, X, Check, Filter } from 'lucide-react';
+import TransliterationInput from '../../components/TransliterationInput';
 import { nakshatraList } from '../../utils/constants';
 
 const ManagerReceipts = () => {
@@ -311,11 +312,11 @@ const ManagerReceipts = () => {
                                         {/* Editable: Person Name */}
                                         <td>
                                             {isEditing ? (
-                                                <input
-                                                    type="text"
+                                                <TransliterationInput
                                                     value={editForm.name}
-                                                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                                                    onChange={(val) => setEditForm({ ...editForm, name: val })}
                                                     className="p-1 border rounded w-full"
+                                                    placeholder="Name (Eng -> Mal)"
                                                 />
                                             ) : (
                                                 row.itemData.name

@@ -5,6 +5,7 @@ import api from "../../utils/api";
 import { Save, Printer, Plus, Trash2 } from "lucide-react";
 import { nakshatraList } from "../../utils/constants";
 import { Kollavarsham } from 'kollavarsham';
+import TransliterationInput from "../../components/TransliterationInput";
 
 // Helper to normalize strings for comparison
 const MIN_DATE = new Date().toISOString().split("T")[0];
@@ -76,7 +77,7 @@ function TempleCounter() {
       }
       if (e.key === "F3") {
         e.preventDefault();
-        handlePrint();
+        submitHandler(e, true);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -346,7 +347,7 @@ function TempleCounter() {
     }
   }, [formData.count, formData.rate, formData.mode, recurringDate, formData.date]);
 
-  const handleSave = async (itemsToSave) => {
+  const handleSave = async (itemsToSave, shouldPrint = false) => {
     const finalDates = calculateRecurringDates();
 
     const payload = {
@@ -362,6 +363,13 @@ function TempleCounter() {
 
     try {
       const { data } = await api.post("/receipts", payload);
+
+      if (shouldPrint) {
+        setFormData(prev => ({ ...prev, receiptNo: data.receiptNumber }));
+        await new Promise(resolve => setTimeout(resolve, 100)); // Wait for render
+        window.print();
+      }
+
       alert(`Saved Successfully! Receipt #${data.receiptNumber} for ${calculateRecurringDates().length} dates.`);
       // Reset for next receipt
       setItems([]);
@@ -392,8 +400,8 @@ function TempleCounter() {
     }
   };
 
-  const submitHandler = async (e) => {
-    if (e) e.preventDefault();
+  const submitHandler = async (e, shouldPrint = false) => {
+    if (e && e.preventDefault) e.preventDefault();
 
     // Determine current vazhipad object for checking flags
     const currentVazhipad = vazhipadItems.find(v =>
@@ -406,10 +414,10 @@ function TempleCounter() {
 
     if (items.length > 0) {
       if (requiresConfirmation) {
-        setPendingSubmission(items);
+        setPendingSubmission({ items, shouldPrint });
         setShowConfirmModal(true);
       } else {
-        await handleSave(items);
+        await handleSave(items, shouldPrint);
       }
     } else {
       if (formData.name && formData.vazhipadu) {
@@ -424,10 +432,10 @@ function TempleCounter() {
         };
 
         if (requiresConfirmation) {
-          setPendingSubmission([item]);
+          setPendingSubmission({ items: [item], shouldPrint });
           setShowConfirmModal(true);
         } else {
-          await handleSave([item]);
+          await handleSave([item], shouldPrint);
         }
       } else {
         alert("Please fill details (Vazhipadu & Name)");
@@ -438,7 +446,7 @@ function TempleCounter() {
   const confirmDateAndSave = async () => {
     setShowConfirmModal(false);
     if (pendingSubmission) {
-      await handleSave(pendingSubmission);
+      await handleSave(pendingSubmission.items, pendingSubmission.shouldPrint);
       setPendingSubmission(null);
     }
   };
@@ -882,12 +890,13 @@ function TempleCounter() {
                     <label className="block text-xs font-semibold text-secondary mb-1">
                       Address
                     </label>
-                    <textarea
-                      rows={2}
+                    <TransliterationInput
                       value={postingData.address}
-                      onChange={(e) => setPostingData({ ...postingData, address: e.target.value })}
-                      placeholder="Postal Address for Prasadam..."
+                      onChange={(val) => setPostingData({ ...postingData, address: val })}
+                      placeholder="Postal Address (Use toggle for Malayalam)"
                       className="w-full p-2 border rounded"
+                      multiline={true}
+                      rows={3}
                     />
                   </div>
                 </div>
@@ -906,16 +915,14 @@ function TempleCounter() {
                   <label className="block text-xs font-semibold text-secondary mb-1 ">
                     Name
                   </label>
-                  <input
-                    ref={nameRef}
-                    type="text"
+                  <TransliterationInput
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                    onChange={(val) =>
+                      setFormData({ ...formData, name: val })
                     }
                     onKeyDown={focusNext}
-                    placeholder="Devotee Name"
-                    className="w-full"
+                    placeholder="Devotee Name (Type in English -> Malayalam)"
+                    className="w-full p-2 border rounded"
                   />
                 </div>
 
@@ -1334,7 +1341,6 @@ function TempleCounter() {
                     boxShadow: "0 4px 6px -1px rgba(234, 88, 12, 0.3), 0 2px 4px -1px rgba(234, 88, 12, 0.15)", // Orange shadow
                     transition: "transform 0.1s"
                   }}
-                  onMosaic={() => { }} // Just a placeholder for valid jsx
                 >
                   <Save size={20} /> Save (F2)
                 </button>
