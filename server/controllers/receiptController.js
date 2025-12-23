@@ -86,9 +86,14 @@ const getReceipts = async (req, res) => {
     let query = { isDeleted: false };
 
     if (req.query.startDate && req.query.endDate) {
+        const start = new Date(req.query.startDate);
+        const end = new Date(req.query.endDate);
+        const nextDay = new Date(end);
+        nextDay.setDate(end.getDate() + 1);
+
         query.date = {
-            $gte: new Date(req.query.startDate),
-            $lte: new Date(req.query.endDate),
+            $gte: start,
+            $lt: nextDay,
         };
     }
 

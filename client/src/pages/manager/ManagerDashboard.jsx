@@ -205,6 +205,19 @@ const ManagerDashboard = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Daily Closing Report Card */}
+                <div className="card bg-purple-600 text-white border-none transition hover:bg-purple-700">
+                    <Link to="/manager/daily-closing" className="flex justify-between items-center w-full h-full no-underline text-white">
+                        <div>
+                            <p className="text-purple-200 text-sm font-medium">End of Day</p>
+                            <h2 className="text-xl font-bold mt-1">Daily Closing Report</h2>
+                        </div>
+                        <div className="bg-white/20 p-3 rounded-full">
+                            <Plus size={24} />
+                        </div>
+                    </Link>
+                </div>
             </div>
 
             {/* User Wise Breakdown */}

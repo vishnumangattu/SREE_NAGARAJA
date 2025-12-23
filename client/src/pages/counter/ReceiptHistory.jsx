@@ -148,8 +148,7 @@ const ReceiptHistory = () => {
                         <select name="paymentType" value={filters.paymentType} onChange={handleFilterChange} className="input-field">
                             <option value="">All</option>
                             <option value="Cash">Cash</option>
-                            <option value="GPay">GPay</option>
-                            <option value="UPI">UPI</option>
+                            <option value="UPI">GPay/UPI</option>
                             <option value="MoneyOrder">Money Order</option>
                             <option value="OnlineTransaction">Online Transaction</option>
                         </select>
@@ -262,8 +261,7 @@ const ReceiptHistory = () => {
                                             {isEditing ? (
                                                 <select value={editForm.paymentType} onChange={e => setEditForm({ ...editForm, paymentType: e.target.value })} className="p-1 border rounded w-full">
                                                     <option value="Cash">Cash</option>
-                                                    <option value="GPay">GPay</option>
-                                                    <option value="UPI">UPI</option>
+                                                    <option value="UPI">GPay/UPI</option>
                                                     <option value="MoneyOrder">Money Order</option>
                                                     <option value="OnlineTransaction">Online Transaction</option>
                                                 </select>

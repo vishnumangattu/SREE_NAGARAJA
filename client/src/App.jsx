@@ -17,6 +17,7 @@ import ClosingReport from './pages/counter/ClosingReport';
 import ClosingReportsView from './pages/manager/ClosingReportsView';
 import UserPerformance from './pages/manager/UserPerformance';
 import ManagerStallSales from './pages/manager/ManagerStallSales';
+import ManagerDailyClosing from './pages/manager/ManagerDailyClosing';
 
 import StallDashboard from './pages/stall/StallDashboard';
 import StallHistory from './pages/stall/StallHistory';
@@ -53,6 +54,7 @@ function App() {
                 <Route path="/manager/daily-list" element={<DailyPoojaList />} />
                 <Route path="/manager/user-performance" element={<UserPerformance />} />
                 <Route path="/manager/stalls" element={<ManagerStallSales />} />
+                <Route path="/manager/daily-closing" element={<ManagerDailyClosing />} />
               </Route>
 
               {/* Admin Routes */}
