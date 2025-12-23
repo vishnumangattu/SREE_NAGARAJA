@@ -337,9 +337,8 @@ const ManagerDailyClosing = () => {
                                 <thead>
                                     <tr>
                                         <th style={thStyle}>Source</th>
-                                        <th style={{ ...thRightStyle, backgroundColor: '#eff6ff' }}>System Record</th>
-                                        <th style={{ ...thRightStyle, backgroundColor: '#f0fdf4' }}>Manual Cash</th>
-                                        <th style={{ ...thRightStyle, backgroundColor: '#faf5ff' }}>Manual GPay</th>
+                                        <th style={{ ...thRightStyle, backgroundColor: '#f0fdf4' }}> Cash</th>
+                                        <th style={{ ...thRightStyle, backgroundColor: '#faf5ff' }}>GPay</th>
                                         <th style={thRightStyle}>Total</th>
                                     </tr>
                                 </thead>
@@ -347,9 +346,6 @@ const ManagerDailyClosing = () => {
                                     {incomeData.map(row => (
                                         <tr key={row.id}>
                                             <td style={{ ...tdStyle, fontWeight: '500' }}>{row.label}</td>
-                                            <td style={{ ...tdRightStyle, color: '#1e40af', fontFamily: 'monospace', backgroundColor: 'rgba(239, 246, 255, 0.5)' }}>
-                                                {row.isSystem ? `₹ ${row.systemAmount}` : '-'}
-                                            </td>
                                             <td style={{ ...tdRightStyle, backgroundColor: 'rgba(240, 253, 244, 0.5)' }}>
                                                 <input
                                                     type="number"
@@ -375,7 +371,6 @@ const ManagerDailyClosing = () => {
                                     ))}
                                     <tr style={{ backgroundColor: '#f3f4f6', fontWeight: '700', borderTop: '2px solid #d1d5db' }}>
                                         <td style={tdStyle}>TOTAL</td>
-                                        <td style={{ ...tdRightStyle, color: '#1e40af' }}>₹ {totalIncome.system}</td>
                                         <td style={{ ...tdRightStyle, color: '#166534' }}>₹ {totalIncome.cash}</td>
                                         <td style={{ ...tdRightStyle, color: '#6b21a8' }}>₹ {totalIncome.gpay}</td>
                                         <td style={{ ...tdRightStyle, fontSize: '1.25rem' }}>₹ {totalIncome.total}</td>
@@ -463,7 +458,6 @@ const ManagerDailyClosing = () => {
                             <thead>
                                 <tr style={{ backgroundColor: '#f3f4f6' }}>
                                     <th style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'left' }}>Item</th>
-                                    <th style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>System</th>
                                     <th style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>Cash Entry</th>
                                     <th style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>GPay Entry</th>
                                     <th style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>Total</th>
@@ -473,7 +467,6 @@ const ManagerDailyClosing = () => {
                                 {incomeData.map(row => (
                                     <tr key={row.id}>
                                         <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', fontWeight: '500' }}>{row.label}</td>
-                                        <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>{row.isSystem ? row.systemAmount : '-'}</td>
                                         <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>{row.enteredCash}</td>
                                         <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>{row.enteredGPay}</td>
                                         <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right', fontWeight: '700' }}>{(row.enteredCash || 0) + (row.enteredGPay || 0)}</td>
@@ -481,7 +474,6 @@ const ManagerDailyClosing = () => {
                                 ))}
                                 <tr style={{ backgroundColor: '#f3f4f6', fontWeight: '700' }}>
                                     <td style={{ border: '1px solid #d1d5db', padding: '0.5rem' }}>TOTAL</td>
-                                    <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>{totalIncome.system}</td>
                                     <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>{totalIncome.cash}</td>
                                     <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right' }}>{totalIncome.gpay}</td>
                                     <td style={{ border: '1px solid #d1d5db', padding: '0.5rem', textAlign: 'right', fontSize: '1.125rem' }}>{totalIncome.total}</td>
