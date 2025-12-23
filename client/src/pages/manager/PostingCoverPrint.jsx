@@ -30,7 +30,9 @@ const PostingCoverPrint = () => {
     };
 
     const handlePrint = () => {
+        document.body.classList.add('printing');
         window.print();
+        document.body.classList.remove('printing');
     };
 
     return (
@@ -146,22 +148,19 @@ const PostingCoverPrint = () => {
                 }
                 @media print {
                     @page { margin: 10mm; }
-                    body * { visibility: hidden; }
-                    #print-area, #print-area * { visibility: visible; }
-                    #print-area { position: absolute; left: 0; top: 0; width: 100%; }
-                    .no-print { display: none !important; }
+                    /* Global reset handles visibility via .printing class */
                     
-                    .address-label {
-                        border: 1px solid #000;
-                        padding: 20px;
-                        page-break-inside: avoid;
-                    }
-                    
-                    /* Grid Layout for Labels */
+                    /* Just ensure local grid layout works */
                     #print-area .grid {
                         display: grid;
                         grid-template-columns: 1fr 1fr;
                         gap: 20px;
+                    }
+
+                    .address-label {
+                        border: 1px solid #000;
+                        padding: 20px;
+                        page-break-inside: avoid;
                     }
                 }
             `}</style>

@@ -357,7 +357,51 @@ body { overflow: hidden; } /* Prevent whole-page scroll; inner panes will scroll
 .w-full { width: 100%; }
 
 /* Print-friendly: keep print overrides in temple.css but ensure main layout hidden */
+/* Print-friendly: Global Reset */
 @media print {
-    .sidebar, .header, .mobile-toggle { display: none !important; }
-    .page-content { padding: 0; }
+    /* Hide specific UI elements */
+    .sidebar,
+    .header,
+    .mobile-toggle,
+    .no-print,
+    button:not(.print-btn) {
+        display: none !important;
+    }
+
+    /* Reset structural containers to allow overflow */
+    html,
+    body,
+    #root,
+    .app-layout,
+    .main-content,
+    .page-content {
+        background: transparent !important;
+        height: auto !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+        position: relative !important;
+    }
+
+    /* Helper for print-only areas */
+    /* If a page has #print-area, we hide everything else via visibility */
+    body.printing * {
+        visibility: hidden;
+    }
+
+    body.printing #print-area,
+    body.printing #print-area * {
+        visibility: visible;
+    }
+
+    body.printing #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
 }

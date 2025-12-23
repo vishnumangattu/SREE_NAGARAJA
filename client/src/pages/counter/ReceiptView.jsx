@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import api from '../../utils/api';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import AuthContext from '../../context/AuthContext';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Printer, ArrowLeft } from 'lucide-react';
 import './temple.css';
 
@@ -9,6 +10,9 @@ const ReceiptView = () => {
     const location = useLocation();
     const [receipt, setReceipt] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const { user } = useContext(AuthContext); // Get user role
+    const navigate = useNavigate();
 
     // Get item index from query params
     const query = new URLSearchParams(location.search);
@@ -30,7 +34,9 @@ const ReceiptView = () => {
     }, [id]);
 
     const handlePrint = () => {
+        document.body.classList.add('printing');
         window.print();
+        document.body.classList.remove('printing');
     };
 
     if (loading) return <div>Loading Receipt...</div>;
@@ -62,14 +68,24 @@ const ReceiptView = () => {
         pages.push(displayItems.slice(i, i + itemsPerPage));
     }
 
+    // Hooks moved to top level
+
+    const handleBack = () => {
+        if (user?.role === 'manager' || user?.role === 'superadmin') {
+            navigate('/manager/receipts');
+        } else {
+            navigate('/counter/history');
+        }
+    };
+
     return (
         <div className="container">
             {/* No Print Header */}
             <div className="no-print flex justify-between items-center mb-6">
                 <div className="flex gap-4">
-                    <Link to="/counter/history" className="btn-secondary flex items-center">
-                        <ArrowLeft size={16} className="mr-2" /> Back to History
-                    </Link>
+                    <button onClick={handleBack} className="btn-secondary flex items-center" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                        <ArrowLeft size={16} className="mr-2" /> Back
+                    </button>
                     {itemIdx !== null && (
                         <Link to={`/counter/receipts/${id}`} className="btn-secondary flex items-center" style={{ marginLeft: '10px' }}>
                             View Full Receipt
@@ -136,39 +152,91 @@ const ReceiptView = () => {
             {/* Print Area - Visible ONLY during print */}
             <div id="print-area">
                 {pages.map((pageItems, pageIndex) => (
-                    <div key={pageIndex} className="print-page" style={{ pageBreakAfter: pageIndex < pages.length - 1 ? 'always' : 'auto', position: 'relative', height: '100vh', padding: '20px' }}>
+                    <div key={pageIndex} className="print-page receipt-layout">
 
-                        {/* Header: Receipt No & Date (Top Right) */}
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '40px', paddingTop: '50px' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{receipt.receiptNumber}</div>
-                            <div style={{ fontSize: '14px', marginTop: '5px' }}>{new Date(receipt.date).toLocaleDateString('en-GB')}</div>
+                        {/* Header Box */}
+                        <div className="receipt-border">
+                            {/* Top Header */}
+                            <div className="receipt-header">
+                                <div className="temple-logo">
+                                    {/* Placeholder for Logo */}
+                                    <div className="logo-placeholder"></div>
+                                </div>
+                                <div className="temple-info">
+                                    <h1 className="temple-name">ആദിമൂലം വെട്ടിക്കോട് ശ്രീ നാഗരാജസ്വാമി ക്ഷേത്രം</h1>
+                                    <p className="temple-address">വെട്ടിക്കോട് പി.ഒ., പള്ളിക്കൽ, ആലപ്പുഴ 690 503 ഫോൺ : +91 479 233 99 33, 8334 82 82 82</p>
+                                </div>
+                            </div>
+
+                            {/* Orange Banner */}
+                            <div className="receipt-banner">
+                                വഴിപാട് രസീത്
+                            </div>
+
+                            {/* Receipt Details Row */}
+                            <div className="receipt-meta-grid">
+                                <div className="meta-left">
+                                    <div className="meta-label">വഴിപാടിനം</div>
+                                    <div className="meta-value">{receipt.vazhipaduType || receipt.vazhipadu}</div>
+                                </div>
+                                <div className="meta-right">
+                                    <div className="receipt-no-date">
+                                        <div className="rn-date">{new Date(receipt.date).toLocaleDateString('en-GB')}</div>
+                                        <div className="rn-number">നമ്പർ : <b>{receipt.receiptNumber}</b></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Table */}
+                            <table className="receipt-table">
+                                <thead>
+                                    <tr>
+                                        <th className="col-no">നം.</th>
+                                        <th className="col-name">പേര്</th>
+                                        <th className="col-star">ജന്മനക്ഷത്രം</th>
+                                        <th className="col-rate text-right">നിരക്ക്</th>
+                                        <th className="col-amount text-right">തുക</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pageItems.map((item, idx) => (
+                                        <tr key={idx}>
+                                            <td className="col-no">{(pageIndex * itemsPerPage) + idx + 1}</td>
+                                            <td className="col-name">{item.name}</td>
+                                            <td className="col-star">{item.nakshatram}</td>
+                                            <td className="col-rate text-right">{Number(item.amount).toFixed(2)}</td>
+                                            <td className="col-amount text-right">{(item.amount * grandTotalMultiplier).toFixed(2)}</td>
+                                        </tr>
+                                    ))}
+                                    {/* Fill empty rows to maintain height if needed, OR just leave as is */}
+                                </tbody>
+                            </table>
                         </div>
 
-                        {/* Table */}
-                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-                            <tbody>
-                                {pageItems.map((item, idx) => (
-                                    <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
-                                        <td style={{ padding: '8px', width: '30px' }}>{(pageIndex * itemsPerPage) + idx + 1}</td>
-                                        <td style={{ padding: '8px', fontWeight: 'bold' }}>{item.name}</td>
-                                        <td style={{ padding: '8px' }}>{item.nakshatram}</td>
-                                        <td style={{ padding: '8px', textAlign: 'right' }}>{Number(item.amount).toFixed(2)}</td>
-                                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold' }}>{(item.amount * grandTotalMultiplier).toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
-                        {/* Footer (Total) - Only on last page */}
+                        {/* Footer Totals (Only on last page, connected to the border if possible or just below) */}
                         {pageIndex === pages.length - 1 && (
-                            <div style={{ position: 'absolute', bottom: '150px', right: '50px', textAlign: 'right' }}>
-                                <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{displayTotal.toFixed(2)}</div>
+                            <div className="receipt-footer-row">
+                                <div className="footer-left-info">
+                                    <div className="generated-line">
+                                        {displayTotal.toFixed(2)} രൂപ കൈപ്പറ്റി / {new Date().toLocaleString('en-GB')} / {user?.name || 'Counter'}
+                                    </div>
+                                    <div className="vazhipad-date-line">
+                                        വഴിപാട് തീയതി : {
+                                            isRecurring
+                                                ? receipt.recurrenceDates.map(d => new Date(d).toLocaleDateString('en-GB')).join(', ')
+                                                : new Date(receipt.vazhipaduDate || receipt.date).toLocaleDateString('en-GB')
+                                        }
+                                    </div>
+                                </div>
+                                <div className="footer-total-box">
+                                    <span className="total-label">ആകെ തുക</span>
+                                    <span className="total-amount">{displayTotal.toFixed(2)}</span>
+                                </div>
                             </div>
                         )}
 
-                        {/* Footer (Date) - Bottom Center/Left */}
-                        <div style={{ position: 'absolute', bottom: '50px', left: '50%', transform: 'translateX(-50%)', fontWeight: 'bold' }}>
-                            {new Date(receipt.date).toLocaleDateString('en-GB')}
+                        <div className="page-num">
+                            {pageIndex + 1} of {pages.length}
                         </div>
 
                     </div>
@@ -184,20 +252,14 @@ const ReceiptView = () => {
 
                 /* Print Styles */
                 @media print {
-                    body * { visibility: hidden; }
-                    #print-area, #print-area * { visibility: visible; }
-                    #print-area { 
-                        position: absolute; 
-                        left: 0; 
-                        top: 0; 
-                        width: 100%; 
-                        display: block;
-                    }
-                    .no-print, .screen-view { display: none !important; } /* Hide controls and screen layout */
-                    .sidebar, .header { display: none !important; }
-                    @page { size: auto; margin: 0mm; }
+                    /* Visibility handled by global index.css via .printing class */
                     
-                    tr { height: 40px; }
+                    #print-area { 
+                        display: block;
+                        width: 100%;
+                    }
+                    
+                    @page { size: auto; margin: 0mm; }
                 }
             `}</style>
         </div>

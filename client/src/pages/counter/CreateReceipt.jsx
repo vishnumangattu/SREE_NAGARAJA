@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
-// import "./temple.css";
+import "./temple.css";
 import { Save, Printer, Plus, Trash2 } from "lucide-react";
 import { nakshatraList } from "../../utils/constants";
 import { Kollavarsham } from 'kollavarsham';
 import TransliterationInput from "../../components/TransliterationInput";
 
 // Helper to normalize strings for comparison
+const normalize = (str) => String(str).toLowerCase().replace(/[^a-z]/g, "");
 const MIN_DATE = new Date().toISOString().split("T")[0];
 const MAX_DATE = "2026-12-31";
 
@@ -102,7 +103,11 @@ function TempleCounter() {
     }
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    document.body.classList.add('printing');
+    window.print();
+    document.body.classList.remove('printing');
+  };
 
   const handleVazhipaduChange = (e) => {
     if (locked) return;
@@ -367,7 +372,9 @@ function TempleCounter() {
       if (shouldPrint) {
         setFormData(prev => ({ ...prev, receiptNo: data.receiptNumber }));
         await new Promise(resolve => setTimeout(resolve, 100)); // Wait for render
+        document.body.classList.add('printing');
         window.print();
+        document.body.classList.remove('printing');
       }
 
       alert(`Saved Successfully! Receipt #${data.receiptNumber} for ${calculateRecurringDates().length} dates.`);
@@ -1511,10 +1518,144 @@ function TempleCounter() {
         </div>
       )}
 
-    </div>
+      {/* Print Area - Visible ONLY during print */}
+      <div id="print-area">
+        {(() => {
+          // Prepare items for print
+          // If items array is empty, use current formData as a single item preview
+          let printItems = items.length > 0 ? items : [];
+          if (items.length === 0 && formData.name && formData.vazhipadu) {
+            printItems = [{
+              name: formData.name,
+              nakshatram: formData.nakshatramType || formData.nakshatram,
+              amount: formData.amount || 0,
+              count: formData.count || 1
+            }];
+          }
+
+          // Calculate Grand Total Multiplier
+          const finalDates = calculateRecurringDates();
+          const grandTotalMultiplier = finalDates.length > 0 ? finalDates.length : 1;
+
+          // Chunk items
+          const itemsPerPage = 5;
+          const pages = [];
+          for (let i = 0; i < printItems.length; i += itemsPerPage) {
+            pages.push(printItems.slice(i, i + itemsPerPage));
+          }
+          // If no items, show at least one empty page or don't render? 
+          // Better to show current form state if possible, handled above.
+          if (pages.length === 0) pages.push([]);
+
+          // Calculate total from items or form data
+          const currentTotal = items.length > 0
+            ? items.reduce((acc, i) => acc + (Number(i.amount) || 0), 0) * grandTotalMultiplier
+            : (Number(formData.amount) || 0);
+
+          return pages.map((pageItems, pageIndex) => (
+            <div key={pageIndex} className="print-page receipt-layout">
+
+              {/* Header Box */}
+              <div className="receipt-border">
+                {/* Top Header */}
+                <div className="receipt-header">
+                  <div className="temple-logo">
+                    {/* Placeholder for Logo */}
+                    <div className="logo-placeholder"></div>
+                  </div>
+                  <div className="temple-info">
+                    <h1 className="temple-name">ആദിമൂലം വെട്ടിക്കോട് ശ്രീ നാഗരാജസ്വാമി ക്ഷേത്രം</h1>
+                    <p className="temple-address">വെട്ടിക്കോട് പി.ഒ., പള്ളിക്കൽ, ആലപ്പുഴ 690 503 ഫോൺ : +91 479 233 99 33, 8334 82 82 82</p>
+                  </div>
+                </div>
+
+                {/* Orange Banner */}
+                <div className="receipt-banner">
+                  വഴിപാട് രസീത്
+                </div>
+
+                {/* Receipt Details Row */}
+                <div className="receipt-meta-grid">
+                  <div className="meta-left">
+                    <div className="meta-label">വഴിപാടിനം</div>
+                    <div className="meta-value">{formData.vazhipaduType || formData.vazhipadu}</div>
+                  </div>
+                  <div className="meta-right">
+                    <div className="receipt-no-date">
+                      <div className="rn-date">{new Date(formData.date).toLocaleDateString('en-GB')}</div>
+                      <div className="rn-number">നമ്പർ : <b>{formData.receiptNo}</b></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table */}
+                <table className="receipt-table">
+                  <thead>
+                    <tr>
+                      <th className="col-no">നം.</th>
+                      <th className="col-name">പേര്</th>
+                      <th className="col-star">ജന്മനക്ഷത്രം</th>
+                      <th className="col-rate text-right">നിരക്ക്</th>
+                      <th className="col-amount text-right">തുക</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageItems.map((item, idx) => (
+                      <tr key={idx}>
+                        <td className="col-no">{(pageIndex * itemsPerPage) + idx + 1}</td>
+                        <td className="col-name">{item.name}</td>
+                        <td className="col-star">{item.nakshatram}</td>
+                        <td className="col-rate text-right">{Number(formData.rate || 0).toFixed(2)}</td>
+                        <td className="col-amount text-right">{(Number(item.amount || formData.amount || 0) * grandTotalMultiplier).toFixed(2)}</td>
+                        {/* Note: item.amount in 'items' array is usually unit * count. 
+                            GrandTotalMultiplier handles recurring logic. 
+                            Wait, in existing logic:
+                            Add Person -> amount = count * rate.
+                            Calculate Total -> reduce(amount) * recurringMultiplier.
+                            So here: item.amount * multiplier is correct for recurring totals per line? 
+                            Actually, usually receipt shows Unit Price or Total for that line.
+                            Let's assume:
+                            Rate column: Unit Rate.
+                            Amount column: (Count * Rate) * Days.
+                        */}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer Totals (Only on last page, connected to the border if possible or just below) */}
+              {pageIndex === pages.length - 1 && (
+                <div className="receipt-footer-row">
+                  <div className="footer-left-info">
+                    <div className="generated-line">
+                      {currentTotal.toFixed(2)} രൂപ കൈപ്പറ്റി / {new Date().toLocaleString('en-GB')} / Counter
+                    </div>
+                    <div className="vazhipad-date-line">
+                      വഴിപാട് തീയതി : {
+                        finalDates.length > 1
+                          ? finalDates.map(d => new Date(d).toLocaleDateString('en-GB')).join(', ')
+                          : (finalDates[0] ? new Date(finalDates[0]).toLocaleDateString('en-GB') : '')
+                      }
+                    </div>
+                  </div>
+                  <div className="footer-total-box">
+                    <span className="total-label">ആകെ തുക</span>
+                    <span className="total-amount">{currentTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="page-num">
+                {pageIndex + 1} of {pages.length}
+              </div>
+
+            </div>
+          ));
+        })()}
+      </div>
+    </div >
   );
 }
-
-
 
 export default TempleCounter;

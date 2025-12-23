@@ -132,7 +132,6 @@ const TransliterationInput = ({ value, onChange, placeholder, className, onKeyDo
                     autoComplete="off"
                     rows={multiline ? rows : undefined}
                     style={{
-                        paddingRight: '40px',
                         width: '100%',
                         borderRadius: '0.375rem',
                         border: '1px solid #e5e7eb',

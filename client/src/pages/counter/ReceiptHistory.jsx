@@ -149,6 +149,9 @@ const ReceiptHistory = () => {
                             <option value="">All</option>
                             <option value="Cash">Cash</option>
                             <option value="GPay">GPay</option>
+                            <option value="UPI">UPI</option>
+                            <option value="MoneyOrder">Money Order</option>
+                            <option value="OnlineTransaction">Online Transaction</option>
                         </select>
                     </div>
                 </div>
@@ -260,6 +263,9 @@ const ReceiptHistory = () => {
                                                 <select value={editForm.paymentType} onChange={e => setEditForm({ ...editForm, paymentType: e.target.value })} className="p-1 border rounded w-full">
                                                     <option value="Cash">Cash</option>
                                                     <option value="GPay">GPay</option>
+                                                    <option value="UPI">UPI</option>
+                                                    <option value="MoneyOrder">Money Order</option>
+                                                    <option value="OnlineTransaction">Online Transaction</option>
                                                 </select>
                                             ) : (
                                                 // Only show payment on first row to reduce clutter? Or all? User said "each person as data", so show all.

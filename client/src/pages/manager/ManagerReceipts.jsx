@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import api from '../../utils/api';
 import AuthContext from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Edit2, Trash2, Save, X, Check, Filter, Ban } from 'lucide-react';
+import { Edit2, Trash2, Save, X, Check, Filter, Ban, Printer } from 'lucide-react';
 import TransliterationInput from '../../components/TransliterationInput';
 import { nakshatraList } from '../../utils/constants';
 
@@ -39,7 +39,11 @@ const ManagerReceipts = () => {
             ]);
             setReceipts(receiptsRes.data);
             setFilteredReceipts(receiptsRes.data);
-            setUsers(usersRes.data);
+
+            // Filter out Stall users
+            const validUsers = usersRes.data.filter(u => u.role !== 'stall');
+            setUsers(validUsers);
+
             setVazhipads(vazhipadsRes.data);
             setLoading(false);
         } catch (error) {
@@ -391,6 +395,14 @@ const ManagerReceipts = () => {
                                                     </>
                                                 ) : (
                                                     <>
+                                                        <Link
+                                                            to={`/counter/receipts/${row._id}?idx=${row.itemIndex}`}
+                                                            className="action-edit"
+                                                            title="Print / View"
+                                                            style={{ color: 'var(--secondary-color)', display: 'flex', alignItems: 'center' }}
+                                                        >
+                                                            <Printer size={16} />
+                                                        </Link>
                                                         <button onClick={() => startEdit(row, row.itemIndex)} className="action-edit" title="Edit">
                                                             <Edit2 size={16} />
                                                         </button>

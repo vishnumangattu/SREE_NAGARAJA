@@ -1,36 +1,44 @@
-/* Temple Counter Specific Styles */
+/* Temple Receipt Layout Styles */
+
+/* Common Variables */
+:root {
+    --receipt-orange: #ea580c;
+    /* Matches the orange in image */
+    --receipt-border: 1px solid var(--receipt-orange);
+}
 
 /* Print Styles */
 @media print {
-
-    /* Hide everything by default */
-    body * {
-        visibility: hidden;
-    }
-
-    /* Exceptions: Print Area */
-    #print-area,
-    #print-area * {
-        visibility: visible;
-    }
-
     #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
+        background: white;
         width: 100%;
-        margin: 0;
-        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
     }
 
-    /* Hide the main app UI */
-    .no-print,
-    .sidebar,
-    .header,
-    .page-content,
-    .main-content,
-    button {
-        display: none !important;
+    @page {
+        size: 105mm 148mm;
+        /* A6 Size (1/4 of A4) */
+        margin: 5mm;
+    }
+
+    .receipt-layout {
+        width: 100%;
+        max-width: 95mm;
+        /* Ensure it fits within A6 minus margins */
+        font-size: 10px;
+        /* Slightly smaller font for smaller paper */
+    }
+
+    /* Adjust specific elements for smaller size if needed */
+    .temple-name {
+        font-size: 14px;
+    }
+
+    .receipt-border {
+        min-height: 130mm;
+        /* approximate full height of A6 */
     }
 }
 
@@ -41,12 +49,251 @@
     }
 }
 
-/* Bill Container for Print */
+/* Print Layout Container */
+.receipt-layout {
+    font-family: 'Noto Sans Malayalam', sans-serif;
+    padding: 0;
+    max-width: 100%;
+    /* Will depend on printer settings, but usually full width */
+    margin: 0 auto;
+    font-size: 12px;
+    color: #000;
+}
+
+/* 1. Main Border Box */
+.receipt-border {
+    border: 2px solid var(--receipt-orange);
+    position: relative;
+    /* Min height to simulate the paper cut if needed */
+}
+
+/* 2. Header Section */
+.receipt-header {
+    display: flex;
+    padding: 8px;
+    border-bottom: 1px solid var(--receipt-orange);
+    align-items: center;
+}
+
+.temple-logo {
+    width: 60px;
+    height: 60px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Logo placeholder circle if image missing */
+.logo-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px dashed var(--receipt-orange);
+    position: relative;
+}
+
+.logo-placeholder:after {
+    content: "Logo";
+    font-size: 8px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--receipt-orange);
+}
+
+.temple-info {
+    flex: 1;
+    text-align: center;
+}
+
+.temple-name {
+    color: var(--receipt-orange);
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.temple-address {
+    color: var(--receipt-orange);
+    font-size: 10px;
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* 3. Orange Banner */
+.receipt-banner {
+    background-color: var(--receipt-orange);
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    padding: 2px 0;
+    font-size: 12px;
+    border-bottom: 2px solid var(--receipt-orange);
+    /* Slightly thicker visually */
+}
+
+/* 4. Meta Info Grid (Vazhipadu Item + Date/No) */
+.receipt-meta-grid {
+    display: flex;
+    border-bottom: 1px solid var(--receipt-orange);
+}
+
+.meta-left {
+    flex: 1;
+    border-right: 1px solid var(--receipt-orange);
+    padding: 4px 8px;
+}
+
+.meta-right {
+    width: 35%;
+    /* Adjust as per image ratio */
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.meta-label {
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.meta-value {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.receipt-no-date {
+    font-size: 11px;
+    text-align: right;
+    line-height: 1.4;
+}
+
+/* 5. Table Styling */
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.receipt-table th {
+    border-bottom: 1px solid var(--receipt-orange);
+    padding: 4px 8px;
+    text-align: left;
+    font-weight: normal;
+    /* Image headers look regular/semi-bold */
+    font-size: 10px;
+    color: #000;
+}
+
+.receipt-table td {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    /* Content is bold */
+    vertical-align: top;
+    height: 24px;
+    /* Minimum row height */
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+/* Column Widths */
+.col-no {
+    width: 40px;
+}
+
+.col-name {}
+
+.col-star {}
+
+.col-rate {
+    width: 80px;
+}
+
+.col-amount {
+    width: 80px;
+}
+
+
+/* 6. Footer Layout */
+.receipt-footer-row {
+    display: flex;
+    border: 2px solid var(--receipt-orange);
+    border-top: none;
+    /* Connects to main border */
+    align-items: stretch;
+}
+
+.footer-left-info {
+    flex: 1;
+    padding: 6px 8px;
+    border-right: 1px solid var(--receipt-orange);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.generated-line {
+    font-size: 9px;
+    color: #444;
+    /* Dark gray for meta text */
+}
+
+.vazhipad-date-line {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    color: var(--receipt-orange);
+    /* Or black, checking image... seems black/dark red? Let's use orange for label part maybe? Image shows full black text for date line generally, but date itself is dark. keeping inherited black. */
+    color: #000;
+}
+
+.footer-total-box {
+    width: 120px;
+    /* Or match column headers */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4px;
+    /* In image, "Aake Thuka" is in a box or just aligned. 
+       Actually, image shows "Aake Thuka" inside a box at bottom right.
+       The last row of table is just borders. The Total is a separate block below table.
+       The footer in image:
+       Left side: "200.00 Received / Date / User"
+       Right side: "Aake Thuka  200" in a box.
+    */
+}
+
+.total-label {
+    font-size: 10px;
+    color: var(--receipt-orange);
+}
+
+.total-amount {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Page Number */
+.page-num {
+    text-align: center;
+    font-size: 8px;
+    margin-top: 4px;
+}
+
+/* Bill Container for Print (Legacy/Previous Screen View) */
 .bill-container {
     padding: 20px;
     font-family: 'Courier New', Courier, monospace;
     width: 300px;
-    /* Thermal printer width usually */
     margin: 0 auto;
 }
 
@@ -97,6 +344,3 @@
     font-size: 0.8rem;
     font-style: italic;
 }
-
-
-

@@ -16,14 +16,13 @@ import StaffManager from './pages/manager/StaffManager';
 import ClosingReport from './pages/counter/ClosingReport';
 import ClosingReportsView from './pages/manager/ClosingReportsView';
 import UserPerformance from './pages/manager/UserPerformance';
+import ManagerStallSales from './pages/manager/ManagerStallSales';
 
 import StallDashboard from './pages/stall/StallDashboard';
+import StallHistory from './pages/stall/StallHistory';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import DeletedReceipts from './pages/admin/DeletedReceipts';
 import UserActivityReport from './pages/admin/UserActivityReport';
-
-// Placeholder Dashboards for other roles
-// Removed placeholders
 
 function App() {
   return (
@@ -47,12 +46,13 @@ function App() {
               <Route element={<PrivateRoute allowedRoles={['manager', 'superadmin']} />}>
                 <Route path="/manager" element={<ManagerDashboard />} />
                 <Route path="/manager/receipts" element={<ManagerReceipts />} />
-                <Route path="/manager/posting-covers" element={<PostingCoverPrint />} /> {/* Added new route */}
+                <Route path="/manager/posting-covers" element={<PostingCoverPrint />} />
                 <Route path="/manager/vazhipads" element={<VazhipadManager />} />
                 <Route path="/manager/staff" element={<StaffManager />} />
                 <Route path="/manager/closing-reports" element={<ClosingReportsView />} />
                 <Route path="/manager/daily-list" element={<DailyPoojaList />} />
                 <Route path="/manager/user-performance" element={<UserPerformance />} />
+                <Route path="/manager/stalls" element={<ManagerStallSales />} />
               </Route>
 
               {/* Admin Routes */}
@@ -65,6 +65,8 @@ function App() {
               {/* Stall Routes */}
               <Route element={<PrivateRoute allowedRoles={['stall', 'superadmin']} />}>
                 <Route path="/stall" element={<StallDashboard />} />
+                <Route path="/stall/history" element={<StallHistory />} />
+                <Route path="/stall/edit/:id" element={<StallDashboard />} />
               </Route>
             </Route>
           </Route>

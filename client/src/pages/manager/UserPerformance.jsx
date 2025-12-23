@@ -35,14 +35,60 @@ const UserPerformance = () => {
 
         setLoading(true);
         try {
-            const { data } = await api.get('/receipts/stats/user-performance', {
+            // Fetch Receipt Performance
+            const perfPromise = api.get('/receipts/stats/user-performance', {
                 params: {
                     userId: selectedUser,
                     startDate: dateRange.startDate,
                     endDate: dateRange.endDate
                 }
             });
-            setStats(data);
+
+            // Fetch Stall Sales
+            const stallsPromise = api.get('/stalls/sales');
+
+            const [perfResponse, stallsResponse] = await Promise.all([perfPromise, stallsPromise]);
+
+            const perfData = perfResponse.data;
+            const allStallSales = stallsResponse.data;
+
+            // Filter Stall Sales for Selected User and Date Range
+            const start = new Date(dateRange.startDate);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(dateRange.endDate);
+            end.setHours(23, 59, 59, 999);
+
+            const userStallSales = allStallSales.filter(sale => {
+                const saleDate = new Date(sale.date);
+                // Check User (assuming soldBy is populated or is ID)
+                const saleUserId = sale.soldBy._id || sale.soldBy;
+                // Check Date Range
+                return (saleUserId === selectedUser) && (saleDate >= start && saleDate <= end);
+            });
+
+            // Aggregate Stall Stats
+            const stallTotal = userStallSales.reduce((sum, s) => sum + s.totalAmount, 0);
+            const stallCount = userStallSales.length;
+
+            const stallCash = userStallSales
+                .filter(s => !s.paymentMethod || s.paymentMethod === 'Cash')
+                .reduce((sum, s) => sum + s.totalAmount, 0);
+
+            const stallUpi = userStallSales
+                .filter(s => s.paymentMethod === 'UPI')
+                .reduce((sum, s) => sum + s.totalAmount, 0);
+
+            // Merge Data
+            const mergedStats = {
+                totalAmount: perfData.totalAmount + stallTotal,
+                count: perfData.count + stallCount, // Total Receipts + Stall Entries
+                cashTotal: perfData.cashTotal + stallCash,
+                upiTotal: perfData.upiTotal + stallUpi,
+                onlineTotal: perfData.onlineTotal || 0, // Stalls don't have this yet
+                moneyOrderTotal: perfData.moneyOrderTotal || 0 // Stalls don't have this yet
+            };
+
+            setStats(mergedStats);
         } catch (error) {
             console.error("Error fetching performance", error);
             alert("Failed to fetch performance stats");

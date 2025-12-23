@@ -25,27 +25,28 @@ const Layout = () => {
             { name: 'Dashboard', path: '/manager', icon: <Home size={20} /> },
             { name: 'New Receipt', path: '/counter/create', icon: <PlusCircle size={20} /> },
             { name: 'Manage Receipts', path: '/manager/receipts', icon: <List size={20} /> },
-            { name: 'Manage Vazhipads', path: '/manager/vazhipads', icon: <List size={20} /> },
-            { name: 'Manage Staff', path: '/manager/staff', icon: <List size={20} /> },
             { name: 'User Performance', path: '/manager/user-performance', icon: <Users size={20} /> },
+            { name: 'Manage Stalls', path: '/manager/stalls', icon: <Home size={20} /> },
             { name: 'Closing Reports', path: '/manager/closing-reports', icon: <List size={20} /> },
             { name: 'Daily Pooja List', path: '/manager/daily-list', icon: <List size={20} /> },
             { name: 'Posting Covers', path: '/manager/posting-covers', icon: <Printer size={20} /> },
+            { name: 'Manage Vazhipads', path: '/manager/vazhipads', icon: <List size={20} /> },
+            { name: 'Manage Staff', path: '/manager/staff', icon: <List size={20} /> },
         ],
         superadmin: [
             { name: 'Admin Dashboard', path: '/admin', icon: <Home size={20} /> },
             { name: 'Manage Receipts', path: '/manager/receipts', icon: <List size={20} /> },
             { name: 'Manage Staff', path: '/manager/staff', icon: <Users size={20} /> },
-            { name: 'Manage Vazhipads', path: '/manager/vazhipads', icon: <List size={20} /> },
+            { name: 'Manage Stalls', path: '/manager/stalls', icon: <Home size={20} /> },
             { name: 'Activity Report', path: '/admin/activity-report', icon: <Clock size={20} /> },
             { name: 'User Performance', path: '/manager/user-performance', icon: <Users size={20} /> },
             { name: 'Closing Reports', path: '/manager/closing-reports', icon: <List size={20} /> },
             { name: 'Daily Pooja List', path: '/manager/daily-list', icon: <List size={20} /> },
             { name: 'Deleted Logs', path: '/admin/deleted-receipts', icon: <Trash2 size={20} /> },
-            { name: 'Posting Covers', path: '/manager/posting-covers', icon: <Printer size={20} /> },
         ],
         stall: [
             { name: 'Stall Dashboard', path: '/stall', icon: <Home size={20} /> },
+            { name: 'History', path: '/stall/history', icon: <List size={20} /> },
         ]
     };
 

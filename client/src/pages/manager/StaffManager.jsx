@@ -10,9 +10,21 @@ const StaffManager = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: '', username: '', password: '', role: 'counter' });
 
+    const [stalls, setStalls] = useState([]); // Added state for stalls
+
     useEffect(() => {
         fetchUsers();
-    }, [currentUser]); // Re-fetch if user changes, though unlikely without page reload
+        fetchStalls(); // Fetch stalls as well
+    }, [currentUser]);
+
+    const fetchStalls = async () => {
+        try {
+            const { data } = await api.get('/stalls');
+            setStalls(data);
+        } catch (error) {
+            console.error("Error fetching stalls", error);
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -177,6 +189,7 @@ const StaffManager = () => {
                                     )}
                                 </select>
                             </div>
+
                             <div className="flex justify-end space-x-4 mt-6">
                                 <button type="button" onClick={handleCloseModal} className="btn-secondary">Cancel</button>
                                 <button type="submit" className="btn-primary flex items-center">

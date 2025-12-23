@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 const ManagerDashboard = () => {
     const [stats, setStats] = useState({
         totalCollection: 0,
+        stallTotal: 0,
         userStats: [],
         cashTotal: 0,
         upiTotal: 0,
@@ -18,10 +19,69 @@ const ManagerDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const { data } = await api.get('/receipts/stats/manager');
+                const [receiptsResponse, stallsResponse] = await Promise.all([
+                    api.get('/receipts/stats/manager'),
+                    api.get('/stalls/sales')
+                ]);
+
+                const data = receiptsResponse.data;
+                const stallData = stallsResponse.data;
+
+                // Calculate Today's Stall Total and Breakdown
+                const today = new Date().toDateString();
+                const todayStallSales = stallData.filter(s => new Date(s.date).toDateString() === today);
+                const stallTotalToday = todayStallSales.reduce((acc, curr) => acc + curr.totalAmount, 0);
+
+                const stallCashTotal = todayStallSales
+                    .filter(s => !s.paymentMethod || s.paymentMethod === 'Cash')
+                    .reduce((acc, curr) => acc + curr.totalAmount, 0);
+
+                const stallUpiTotal = todayStallSales
+                    .filter(s => s.paymentMethod === 'UPI')
+                    .reduce((acc, curr) => acc + curr.totalAmount, 0);
+
+                // --- Calculate Stall User Performance & Merge ---
+                const stallUserMap = {};
+                todayStallSales.forEach(sale => {
+                    const userId = sale.soldBy._id; // Assuming soldBy is populated in backend or is ID
+                    // Wait, soldBy in StallSale might be just ID if not populated. 
+                    // Let's check api.get('/stalls/sales') implementation. 
+                    // Usually it populates soldBy. If not, we might miss user name.
+                    // Assuming populated for now as 'soldBy'
+                    if (!stallUserMap[userId]) {
+                        stallUserMap[userId] = {
+                            _id: userId,
+                            user: sale.soldBy, // Object
+                            count: 0,
+                            total: 0
+                        };
+                    }
+                    stallUserMap[userId].count += 1; // Or items count? Usually just transaction count
+                    stallUserMap[userId].total += sale.totalAmount;
+                });
+
+                // Merge with Receipt User Stats
+                const combinedUserStats = [...data.userWiseStats];
+
+                Object.values(stallUserMap).forEach(stallStat => {
+                    const existingStatIndex = combinedUserStats.findIndex(s => s._id === stallStat._id);
+                    if (existingStatIndex > -1) {
+                        combinedUserStats[existingStatIndex].count += stallStat.count;
+                        combinedUserStats[existingStatIndex].total += stallStat.total;
+                    } else {
+                        combinedUserStats.push(stallStat);
+                    }
+                });
+
+                // Sort combined stats by Total Descending
+                combinedUserStats.sort((a, b) => b.total - a.total);
+
                 setStats({
                     totalCollection: data.totalCollectionToday,
-                    userStats: data.userWiseStats,
+                    stallTotal: stallTotalToday,
+                    stallCashTotal,
+                    stallUpiTotal,
+                    userStats: combinedUserStats, // Updated
                     cashTotal: data.cashTotal || 0,
                     upiTotal: data.upiTotal || 0,
                     onlineTxnTotal: data.onlineTxnTotal || 0,
@@ -49,10 +109,22 @@ const ManagerDashboard = () => {
                 <div className="card card--accent">
                     <div className="flex justify-between items-center">
                         <div>
-                            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.875rem' }}>Total Collection Today</p>
+                            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.875rem' }}>Counter Collection</p>
                             <h2 style={{ fontSize: '2rem', marginTop: '0.5rem' }}>₹ {stats.totalCollection.toLocaleString()}</h2>
                         </div>
                         <div style={{ padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '50%' }}>
+                            <TrendingUp size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="card bg-gradient-to-r from-orange-500 to-red-500 text-white border-none">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p className="text-orange-100 text-sm font-medium">Stall Collection</p>
+                            <h2 className="text-3xl font-bold mt-2">₹ {stats.stallTotal.toLocaleString()}</h2>
+                        </div>
+                        <div className="bg-white/20 p-3 rounded-full">
                             <TrendingUp size={24} />
                         </div>
                     </div>
@@ -70,10 +142,11 @@ const ManagerDashboard = () => {
                     </div>
                 </div>
 
+                {/* Counter Payments */}
                 <div className="card card--light" style={{ gridColumn: 'span 2' }}>
                     <div className="flex justify-between items-center">
                         <div style={{ width: '100%' }}>
-                            <p className="text-muted text-sm">Payments Breakdown (Today)</p>
+                            <p className="text-muted text-sm">Counter Payments (Today)</p>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
                                 {/* Cash */}
                                 <div style={{ padding: '1rem', background: '#ecfdf5', borderRadius: '12px', border: '1px solid #d1fae5' }}>
@@ -94,6 +167,27 @@ const ManagerDashboard = () => {
                                 <div style={{ padding: '1rem', background: '#fff7ed', borderRadius: '12px', border: '1px solid #ffedd5' }}>
                                     <p className="text-muted text-xs uppercase font-bold" style={{ color: '#c2410c' }}>Money Order</p>
                                     <h3 style={{ fontSize: '1.25rem', marginTop: '0.25rem', fontWeight: '700', color: '#7c2d12' }}>₹ {stats.moneyOrderTotal.toLocaleString()}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stall Payments */}
+                <div className="card card--light" style={{ gridColumn: 'span 2' }}>
+                    <div className="flex justify-between items-center">
+                        <div style={{ width: '100%' }}>
+                            <p className="text-muted text-sm">Stall Payments (Today)</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+                                {/* Cash */}
+                                <div style={{ padding: '1rem', background: '#ecfdf5', borderRadius: '12px', border: '1px solid #d1fae5' }}>
+                                    <p className="text-muted text-xs uppercase font-bold" style={{ color: '#047857' }}>Cash</p>
+                                    <h3 style={{ fontSize: '1.25rem', marginTop: '0.25rem', fontWeight: '700', color: '#064e3b' }}>₹ {stats.stallCashTotal?.toLocaleString() || 0}</h3>
+                                </div>
+                                {/* UPI/GPay */}
+                                <div style={{ padding: '1rem', background: '#eff6ff', borderRadius: '12px', border: '1px solid #dbeafe' }}>
+                                    <p className="text-muted text-xs uppercase font-bold" style={{ color: '#1d4ed8' }}>UPI / GPay</p>
+                                    <h3 style={{ fontSize: '1.25rem', marginTop: '0.25rem', fontWeight: '700', color: '#1e3a8a' }}>₹ {stats.stallUpiTotal?.toLocaleString() || 0}</h3>
                                 </div>
                             </div>
                         </div>

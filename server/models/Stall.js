@@ -8,8 +8,8 @@ const stallSchema = mongoose.Schema(
             unique: true,
         },
         type: {
-            type: String, // e.g., 'prasadam', 'flowers'
-            required: true,
+            type: String,
+            default: 'Stall',
         },
         description: {
             type: String,

@@ -1,191 +1,313 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Edit2, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../utils/api';
-import { Plus, ShoppingCart, History, Save, Trash2 } from 'lucide-react';
 
 const StallDashboard = () => {
-    const [sales, setSales] = useState([]);
-    const [totalToday, setTotalToday] = useState(0);
-    const [items, setItems] = useState([{ id: Date.now(), name: '', rate: 0, quantity: 1, amount: 0 }]);
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [rows, setRows] = useState([]);
+    const [amount, setAmount] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState('Cash');
+    const [remarks, setRemarks] = useState("");
+    const amountInputRef = useRef(null);
     const [loading, setLoading] = useState(true);
+    const [todayTotal, setTodayTotal] = useState(0);
 
     useEffect(() => {
-        fetchSales();
-    }, []);
+        loadDashboardData();
+    }, [id]);
 
-    const fetchSales = async () => {
+    const loadDashboardData = async () => {
+        setLoading(true);
         try {
-            const { data } = await api.get('/stalls/sales');
-            setSales(data);
-
-            const today = new Date().toDateString();
-            const todaySales = data.filter(s => new Date(s.date).toDateString() === today);
-            const total = todaySales.reduce((acc, curr) => acc + curr.totalAmount, 0);
-            setTotalToday(total);
-
-            setLoading(false);
+            await fetchDailySalesAndTotal();
         } catch (error) {
             console.error(error);
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleItemChange = (id, field, value) => {
-        const newItems = items.map(item => {
-            if (item.id === id) {
-                let updates = { [field]: value };
-                if (field === 'quantity' || field === 'rate') {
-                    const qty = field === 'quantity' ? value : item.quantity;
-                    const rt = field === 'rate' ? value : item.rate;
-                    updates.amount = qty * rt;
-                }
-                return { ...item, ...updates };
-            }
-            return item;
-        });
-        setItems(newItems);
-    };
+    const fetchDailySalesAndTotal = async () => {
+        try {
+            const { data } = await api.get('/stalls/sales');
+            const today = new Date().toDateString();
 
-    const addItem = () => {
-        setItems([...items, { id: Date.now(), name: '', rate: 0, quantity: 1, amount: 0 }]);
-    };
+            // Filter for Today's sales
+            const todaySales = data.filter(s => new Date(s.date).toDateString() === today);
 
-    const removeItem = (id) => {
-        if (items.length > 1) {
-            setItems(items.filter(item => item.id !== id));
+            // Sort by date ascending to calculate running totals
+            const sortedByTimeAsc = [...todaySales].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            let runningTotal = 0;
+            const processedRows = sortedByTimeAsc.map((sale, index) => {
+                runningTotal += sale.totalAmount;
+                const itemNames = sale.items.map(i => i.name === 'Stall Entry' ? '' : i.name).filter(Boolean).join(', ');
+
+                return {
+                    id: sale._id, // Real Backend ID
+                    displayId: index + 1,
+                    amount: sale.totalAmount,
+                    remarks: itemNames,
+                    total: runningTotal,
+                    paymentMethod: sale.paymentMethod || 'Cash', // Default for old data
+                    edited: false,
+                    locked: true,
+                };
+            });
+
+            setRows(processedRows);
+            setTodayTotal(runningTotal);
+
+        } catch (error) {
+            console.error("Failed to fetch data", error);
         }
     };
 
-    const calculateTotal = () => items.reduce((acc, curr) => acc + curr.amount, 0);
+    const handleAdd = async () => {
+        if (!amount) return;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+        const currentAmount = Number(amount);
+
         try {
             const payload = {
-                items: items.map(({ name, rate, quantity, amount }) => ({ name, rate, quantity, amount })),
-                totalAmount: calculateTotal()
+                items: [{
+                    name: remarks || 'Stall Entry',
+                    rate: currentAmount,
+                    quantity: 1,
+                    amount: currentAmount
+                }],
+                totalAmount: currentAmount,
+                paymentMethod // 'Cash' or 'UPI'
             };
+
             await api.post('/stalls/sales', payload);
-            alert('Sale Recorded!');
-            setItems([{ id: Date.now(), name: '', rate: 0, quantity: 1, amount: 0 }]);
-            fetchSales();
+
+            setAmount("");
+            setRemarks("");
+            // Reset payment method to Cash? Or keep selection? Usually keep for speed.
+            // setPaymentMethod('Cash'); 
+            amountInputRef.current?.focus();
+
+            await fetchDailySalesAndTotal();
+
         } catch (error) {
-            alert('Failed to record sale');
+            console.error(error);
+            alert("Failed to save entry");
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            handleAdd();
+        }
+    };
+
+    const handleEdit = (id) => {
+        setRows(rows.map((r) => (r.id === id ? { ...r, locked: false } : r)));
+    };
+
+    const handleUpdate = async (id, newAmount, newRemarks) => {
+        try {
+            const numAmount = Number(newAmount);
+            // Verify if we want to update payment method here too?
+            // For now, let's assume inline edit keeps original payment method unless we add field.
+            // Let's simpler keep it as is, or pass existing one.
+            const row = rows.find(r => r.id === id);
+
+            const payload = {
+                items: [{
+                    name: newRemarks || 'Stall Entry',
+                    rate: numAmount,
+                    quantity: 1,
+                    amount: numAmount
+                }],
+                totalAmount: numAmount,
+                paymentMethod: row.paymentMethod // Preserve original
+            };
+
+            await api.put(`/stalls/sales/${id}`, payload);
+
+            await fetchDailySalesAndTotal();
+
+        } catch (error) {
+            console.error(error);
+            alert("Failed to update entry");
         }
     };
 
     if (loading) return <div>Loading...</div>;
 
+    // Render rows in reverse order (Newest First) per request
+    const reversedRows = [...rows].reverse();
+
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {/* Sales Entry */}
-            <div style={{ gridColumn: 'span 2' }}>
-                <h1 style={{ marginBottom: '1.5rem' }}>New Sale Entry</h1>
-                <form onSubmit={handleSubmit} className="card space-y-4">
-                    <div className="space-y-4">
-                        {items.map((item) => (
-                            <div key={item.id} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem' }}>
-                                <div style={{ flex: 3 }}>
-                                    <label className="text-xs font-bold text-muted mb-1 block">Item Name</label>
-                                    <input
-                                        type="text"
-                                        className="input-field"
-                                        value={item.name}
-                                        onChange={e => handleItemChange(item.id, 'name', e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <label className="text-xs font-bold text-muted mb-1 block">Rate</label>
-                                    <input
-                                        type="number"
-                                        className="input-field"
-                                        value={item.rate}
-                                        onChange={e => handleItemChange(item.id, 'rate', parseFloat(e.target.value))}
-                                        required
-                                    />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <label className="text-xs font-bold text-muted mb-1 block">Qty</label>
-                                    <input
-                                        type="number"
-                                        className="input-field"
-                                        value={item.quantity}
-                                        onChange={e => handleItemChange(item.id, 'quantity', parseInt(e.target.value))}
-                                        required
-                                    />
-                                </div>
-                                <div style={{ flex: 1, textAlign: 'right', paddingBottom: '0.5rem' }}>
-                                    <p className="font-bold">₹ {item.amount}</p>
-                                </div>
-                                {items.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => removeItem(item.id)}
-                                        className="text-danger"
-                                        style={{ marginBottom: '0.5rem', background: 'none', border: 'none', cursor: 'pointer' }}
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <button type="button" onClick={addItem} className="text-sm flex items-center" style={{ color: 'var(--secondary-color)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                        <Plus size={16} style={{ marginRight: '0.25rem' }} /> Add More Items
-                    </button>
-
-                    <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>Total: ₹ {calculateTotal()}</div>
-                        <button type="submit" className="btn-primary flex items-center">
-                            <Save size={16} style={{ marginRight: '0.5rem' }} /> Record Sale
-                        </button>
-                    </div>
-                </form>
-
-                {/* Recent Sales List */}
-                <div className="card" style={{ padding: 0, overflow: 'hidden', marginTop: '2rem' }}>
-                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                        <h2 style={{ fontSize: '1rem' }}>Recent Sales History</h2>
-                    </div>
-                    <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Items</th>
-                                    <th className="text-right">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {sales.slice(0, 10).map((sale) => (
-                                    <tr key={sale._id}>
-                                        <td className="text-sm text-muted">
-                                            {new Date(sale.date).toLocaleTimeString()}
-                                        </td>
-                                        <td className="text-sm">
-                                            {sale.items.map(i => `${i.name} (x${i.quantity})`).join(', ')}
-                                        </td>
-                                        <td className="text-right font-bold">
-                                            ₹ {sale.totalAmount}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+        <div className="max-w-4xl mx-auto">
+            {/* Today's Total Card */}
+            <div className="card bg-gradient-to-r from-orange-500 to-red-500 text-white mb-6 border-none shadow-lg">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <p className="text-orange-100 text-sm font-medium mb-1">Today's Total Collection</p>
+                        <h2 className="text-4xl font-bold">₹ {todayTotal.toLocaleString()}</h2>
                     </div>
                 </div>
             </div>
 
-            {/* Sidebar Stats */}
-            <div>
-                <div className="card" style={{ background: 'linear-gradient(to bottom right, #fb923c, #ea580c)', color: 'white', border: 'none' }}>
-                    <p style={{ color: '#ffedd5', fontSize: '0.875rem' }}>Today's Total Sales</p>
-                    <h2 style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0.5rem 0' }}>₹ {totalToday.toLocaleString()}</h2>
-                    <div style={{ display: 'flex', alignItems: 'center', color: '#ffedd5', fontSize: '0.875rem' }}>
-                        <ShoppingCart size={16} style={{ marginRight: '0.5rem' }} />
-                        <span>{sales.filter(s => new Date(s.date).toDateString() === new Date().toDateString()).length} Transactions</span>
+            <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Stall Sheet
+                    </h1>
+                </div>
+                <div className="flex gap-2">
+                    <Link to="/stall/history" className="btn-secondary">
+                        History
+                    </Link>
+                </div>
+            </div>
+
+            {/* Input Area */}
+            <div className="card mb-6 p-4 flex flex-col gap-4 bg-white shadow-sm border border-gray-100">
+                <div className="flex gap-4 items-end">
+                    <div className="w-32">
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Payment</label>
+                        <select
+                            value={paymentMethod}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                            className="input-field w-full h-[42px]"
+                        >
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">GPay</option>
+                        </select>
                     </div>
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Amount</label>
+                        <input
+                            ref={amountInputRef}
+                            type="number"
+                            placeholder="Enter Amount"
+                            value={amount}
+                            className="input-field w-full text-lg"
+                            onChange={(e) => setAmount(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            autoFocus
+                        />
+                    </div>
+                    <div className="flex-[2]">
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Remarks (Optional)</label>
+                        <input
+                            type="text"
+                            placeholder="Enter Remarks"
+                            value={remarks}
+                            className="input-field w-full"
+                            onChange={(e) => setRemarks(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                        />
+                    </div>
+                    <button
+                        onClick={handleAdd}
+                        className="btn-primary h-[42px] px-6"
+                    >
+                        Enter
+                    </button>
+                </div>
+            </div>
+
+            {/* Table Area */}
+            <div className="card p-0 overflow-hidden shadow-sm border border-gray-100">
+                <div className="table-container">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-bold">
+                            <tr>
+                                <th className="p-4 border-b">No</th>
+                                <th className="p-4 border-b">Pay Mode</th>
+                                <th className="p-4 border-b">Amount</th>
+                                <th className="p-4 border-b">Remarks</th>
+                                <th className="p-4 border-b text-right">Total</th>
+                                <th className="p-4 border-b text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {reversedRows.map((row) => (
+                                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="p-4 font-mono text-gray-500">{row.displayId}</td>
+
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${row.paymentMethod === 'Cash'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-blue-100 text-blue-700'
+                                            }`}>
+                                            {row.paymentMethod === 'UPI' ? 'GPay' : row.paymentMethod}
+                                        </span>
+                                    </td>
+
+                                    <td className="p-4 font-bold text-gray-800">
+                                        {row.locked ? (
+                                            `₹ ${row.amount}`
+                                        ) : (
+                                            <input
+                                                type="number"
+                                                defaultValue={row.amount}
+                                                id={`edit-amount-${row.id}`}
+                                                className="input-field p-1 w-24 text-sm"
+                                            />
+                                        )}
+                                    </td>
+
+                                    <td className="p-4">
+                                        {row.locked ? (
+                                            <div className="flex items-center gap-2">
+                                                <span>{row.remarks || '-'}</span>
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                defaultValue={row.remarks}
+                                                id={`edit-remarks-${row.id}`}
+                                                className="input-field p-1 w-full text-sm"
+                                            />
+                                        )}
+                                    </td>
+
+                                    <td className="p-4 text-right font-mono font-bold text-blue-600">
+                                        ₹ {row.total}
+                                    </td>
+
+                                    <td className="p-4 text-center">
+                                        {row.locked ? (
+                                            <button
+                                                onClick={() => handleEdit(row.id)}
+                                                className="text-gray-400 hover:text-blue-600 transition-colors"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() =>
+                                                    handleUpdate(
+                                                        row.id,
+                                                        document.getElementById(`edit-amount-${row.id}`).value,
+                                                        document.getElementById(`edit-remarks-${row.id}`).value
+                                                    )
+                                                }
+                                                className="text-green-600 hover:text-green-700 font-bold text-sm bg-green-50 px-3 py-1 rounded border border-green-200"
+                                            >
+                                                Save
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {reversedRows.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" className="p-8 text-center text-gray-400 italic">
+                                        No entries yet. Start by adding an amount above.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -13,4 +13,7 @@ router.route('/sales')
     .post(protect, authorize('stall', 'manager', 'superadmin'), recordSale)
     .get(protect, authorize('stall', 'manager', 'superadmin'), getSales);
 
+router.route('/sales/:id')
+    .put(protect, authorize('stall', 'manager', 'superadmin'), require('../controllers/stallController').updateSale);
+
 module.exports = router;

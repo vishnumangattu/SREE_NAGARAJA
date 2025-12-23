@@ -28,6 +28,11 @@ const stallSaleSchema = mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        paymentMethod: {
+            type: String,
+            enum: ['Cash', 'UPI'],
+            default: 'Cash',
+        },
     },
     {
         timestamps: true,
