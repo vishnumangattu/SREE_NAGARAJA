@@ -24,7 +24,7 @@ export const nakshatraList = [
         "ml": "രേവതി"
     },
     {
-        "en": "Aswathi",
+        "en": "Ashwathi",
         "ml": "അശ്വതി"
     },
     {
@@ -40,7 +40,7 @@ export const nakshatraList = [
         "ml": "രോഹിണി"
     },
     {
-        "en": "Makayiram",
+        "en": "Makiryam",
         "ml": "മകയിരം"
     },
     {
@@ -56,7 +56,7 @@ export const nakshatraList = [
         "ml": "പൂയം"
     },
     {
-        "en": "Ayilyam",
+        "en": "Aayilyam",
         "ml": "ആയില്യം"
     },
     {
@@ -76,7 +76,7 @@ export const nakshatraList = [
         "ml": "അത്തം"
     },
     {
-        "en": "Chithira",
+        "en": "Chithra",
         "ml": "ചിത്തിര"
     },
     {
