@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 import "./temple.css";
-import { Save, Printer, Plus, Trash2 } from "lucide-react";
+
 import { nakshatraList } from "../../utils/constants";
 import { Kollavarsham } from 'kollavarsham';
 import TransliterationInput from "../../components/TransliterationInput";
+import MalayalamDatePicker from "../../components/MalayalamDatePicker";
+import { Save, Printer, Plus, Trash2, Calendar, X } from "lucide-react";
 
 // Helper to normalize strings for comparison
 const normalize = (str) => String(str).toLowerCase().replace(/[^a-z]/g, "");
@@ -23,6 +25,7 @@ function TempleCounter() {
   const countRef = useRef(null);
   const nameRef = useRef(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [activeDatePicker, setActiveDatePicker] = useState(null); // 'oneDay', 'recurringStart', 'recurringEnd'
   const [pendingSubmission, setPendingSubmission] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -568,27 +571,55 @@ function TempleCounter() {
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <span className="text-xs text-gray-500">Start Date</span>
-                          <input
-                            type="date"
-                            value={recurringDate.startDate}
-                            onChange={(e) => setRecurringDate({ ...recurringDate, startDate: e.target.value })}
-                            className={`w-full p-2 border rounded ${locked ? 'bg-gray-100' : ''}`}
-                            disabled={locked}
-                            min={MIN_DATE}
-                            max={MAX_DATE}
-                          />
+                          <div className="relative">
+                            <div
+                              onClick={() => !locked && setActiveDatePicker('recStart')}
+                              className={`w-full p-2 border rounded flex items-center justify-between cursor-pointer ${locked ? 'bg-gray-100' : 'bg-white'}`}
+                            >
+                              <span>{recurringDate.startDate ? new Date(recurringDate.startDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                              <Calendar size={14} className="text-gray-400" />
+                            </div>
+                            {activeDatePicker === 'recStart' && (
+                              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                  <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                  <MalayalamDatePicker
+                                    value={recurringDate.startDate}
+                                    onChange={(date) => setRecurringDate({ ...recurringDate, startDate: date })}
+                                    min={MIN_DATE}
+                                    max={MAX_DATE}
+                                    onClose={() => setActiveDatePicker(null)}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="flex-1">
                           <span className="text-xs text-gray-500">End Date</span>
-                          <input
-                            type="date"
-                            value={recurringDate.endDate}
-                            onChange={(e) => setRecurringDate({ ...recurringDate, endDate: e.target.value })}
-                            className={`w-full p-2 border rounded ${locked ? 'bg-gray-100' : ''}`}
-                            disabled={locked}
-                            min={MIN_DATE}
-                            max={MAX_DATE}
-                          />
+                          <div className="relative">
+                            <div
+                              onClick={() => !locked && setActiveDatePicker('recEnd')}
+                              className={`w-full p-2 border rounded flex items-center justify-between cursor-pointer ${locked ? 'bg-gray-100' : 'bg-white'}`}
+                            >
+                              <span>{recurringDate.endDate ? new Date(recurringDate.endDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                              <Calendar size={14} className="text-gray-400" />
+                            </div>
+                            {activeDatePicker === 'recEnd' && (
+                              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                  <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                  <MalayalamDatePicker
+                                    value={recurringDate.endDate}
+                                    onChange={(date) => setRecurringDate({ ...recurringDate, endDate: date })}
+                                    min={MIN_DATE}
+                                    max={MAX_DATE}
+                                    onClose={() => setActiveDatePicker(null)}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="text-xs text-blue-600 font-medium">
@@ -600,27 +631,55 @@ function TempleCounter() {
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <span className="text-xs text-gray-500">Start</span>
-                          <input
-                            type="date"
-                            value={recurringDate.startDate}
-                            onChange={(e) => setRecurringDate({ ...recurringDate, startDate: e.target.value })}
-                            className={`w-full p-2 border rounded ${locked ? 'bg-gray-100' : ''}`}
-                            disabled={locked}
-                            min={MIN_DATE}
-                            max={MAX_DATE}
-                          />
+                          <div className="relative">
+                            <div
+                              onClick={() => !locked && setActiveDatePicker('recStart')}
+                              className={`w-full p-2 border rounded flex items-center justify-between cursor-pointer ${locked ? 'bg-gray-100' : 'bg-white'}`}
+                            >
+                              <span>{recurringDate.startDate ? new Date(recurringDate.startDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                              <Calendar size={14} className="text-gray-400" />
+                            </div>
+                            {activeDatePicker === 'recStart' && (
+                              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                  <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                  <MalayalamDatePicker
+                                    value={recurringDate.startDate}
+                                    onChange={(date) => setRecurringDate({ ...recurringDate, startDate: date })}
+                                    min={MIN_DATE}
+                                    max={MAX_DATE}
+                                    onClose={() => setActiveDatePicker(null)}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div className="flex-1">
                           <span className="text-xs text-gray-500">End</span>
-                          <input
-                            type="date"
-                            value={recurringDate.endDate}
-                            onChange={(e) => setRecurringDate({ ...recurringDate, endDate: e.target.value })}
-                            className={`w-full p-2 border rounded ${locked ? 'bg-gray-100' : ''}`}
-                            disabled={locked}
-                            min={MIN_DATE}
-                            max={MAX_DATE}
-                          />
+                          <div className="relative">
+                            <div
+                              onClick={() => !locked && setActiveDatePicker('recEnd')}
+                              className={`w-full p-2 border rounded flex items-center justify-between cursor-pointer ${locked ? 'bg-gray-100' : 'bg-white'}`}
+                            >
+                              <span>{recurringDate.endDate ? new Date(recurringDate.endDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                              <Calendar size={14} className="text-gray-400" />
+                            </div>
+                            {activeDatePicker === 'recEnd' && (
+                              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                  <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                  <MalayalamDatePicker
+                                    value={recurringDate.endDate}
+                                    onChange={(date) => setRecurringDate({ ...recurringDate, endDate: date })}
+                                    min={MIN_DATE}
+                                    max={MAX_DATE}
+                                    onClose={() => setActiveDatePicker(null)}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <select
@@ -681,27 +740,55 @@ function TempleCounter() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <span className="block text-xs font-semibold text-gray-500 mb-1">Start Month</span>
-                              <input
-                                type="date"
-                                value={recurringDate.startDate}
-                                onChange={(e) => setRecurringDate({ ...recurringDate, startDate: e.target.value })}
-                                className={`w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${locked ? 'bg-gray-100' : 'bg-white'}`}
-                                disabled={locked}
-                                min={MIN_DATE}
-                                max={MAX_DATE}
-                              />
+                              <div className="relative">
+                                <div
+                                  onClick={() => !locked && setActiveDatePicker('recStart')}
+                                  className={`w-full p-2.5 border border-gray-200 rounded-lg text-sm flex items-center justify-between cursor-pointer transition-all ${locked ? 'bg-gray-100' : 'bg-white'}`}
+                                >
+                                  <span>{recurringDate.startDate ? new Date(recurringDate.startDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                                  <Calendar size={14} className="text-gray-400" />
+                                </div>
+                                {activeDatePicker === 'recStart' && (
+                                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                    <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                      <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                      <MalayalamDatePicker
+                                        value={recurringDate.startDate}
+                                        onChange={(date) => setRecurringDate({ ...recurringDate, startDate: date })}
+                                        min={MIN_DATE}
+                                        max={MAX_DATE}
+                                        onClose={() => setActiveDatePicker(null)}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <div>
                               <span className="block text-xs font-semibold text-gray-500 mb-1">End Month</span>
-                              <input
-                                type="date"
-                                value={recurringDate.endDate}
-                                onChange={(e) => setRecurringDate({ ...recurringDate, endDate: e.target.value })}
-                                className={`w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all ${locked ? 'bg-gray-100' : 'bg-white'}`}
-                                disabled={locked}
-                                min={MIN_DATE}
-                                max={MAX_DATE}
-                              />
+                              <div className="relative">
+                                <div
+                                  onClick={() => !locked && setActiveDatePicker('recEnd')}
+                                  className={`w-full p-2.5 border border-gray-200 rounded-lg text-sm flex items-center justify-between cursor-pointer transition-all ${locked ? 'bg-gray-100' : 'bg-white'}`}
+                                >
+                                  <span>{recurringDate.endDate ? new Date(recurringDate.endDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                                  <Calendar size={14} className="text-gray-400" />
+                                </div>
+                                {activeDatePicker === 'recEnd' && (
+                                  <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                    <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                      <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                      <MalayalamDatePicker
+                                        value={recurringDate.endDate}
+                                        onChange={(date) => setRecurringDate({ ...recurringDate, endDate: date })}
+                                        min={MIN_DATE}
+                                        max={MAX_DATE}
+                                        onClose={() => setActiveDatePicker(null)}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
 
@@ -734,23 +821,55 @@ function TempleCounter() {
                               <div className="grid grid-cols-2 gap-3 mb-3">
                                 <div>
                                   <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">From</span>
-                                  <input
-                                    type="date"
-                                    value={recurringDate.startDate}
-                                    onChange={(e) => setRecurringDate({ ...recurringDate, startDate: e.target.value })}
-                                    className="w-full p-2 border border-gray-200 rounded text-sm font-medium text-gray-700"
-                                    disabled={locked}
-                                  />
+                                  <div className="relative">
+                                    <div
+                                      onClick={() => !locked && setActiveDatePicker('recStart')}
+                                      className="w-full p-2 border border-gray-200 rounded text-sm font-medium text-gray-700 flex items-center justify-between cursor-pointer bg-white"
+                                    >
+                                      <span>{recurringDate.startDate ? new Date(recurringDate.startDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                                      <Calendar size={14} className="text-gray-400" />
+                                    </div>
+                                    {activeDatePicker === 'recStart' && (
+                                      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                        <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                          <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                          <MalayalamDatePicker
+                                            value={recurringDate.startDate}
+                                            onChange={(date) => setRecurringDate({ ...recurringDate, startDate: date })}
+                                            min={MIN_DATE}
+                                            max={MAX_DATE}
+                                            onClose={() => setActiveDatePicker(null)}
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">To</span>
-                                  <input
-                                    type="date"
-                                    value={recurringDate.endDate}
-                                    onChange={(e) => setRecurringDate({ ...recurringDate, endDate: e.target.value })}
-                                    className="w-full p-2 border border-gray-200 rounded text-sm font-medium text-gray-700"
-                                    disabled={locked}
-                                  />
+                                  <div className="relative">
+                                    <div
+                                      onClick={() => !locked && setActiveDatePicker('recEnd')}
+                                      className="w-full p-2 border border-gray-200 rounded text-sm font-medium text-gray-700 flex items-center justify-between cursor-pointer bg-white"
+                                    >
+                                      <span>{recurringDate.endDate ? new Date(recurringDate.endDate).toLocaleDateString('en-GB') : 'Select'}</span>
+                                      <Calendar size={14} className="text-gray-400" />
+                                    </div>
+                                    {activeDatePicker === 'recEnd' && (
+                                      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setActiveDatePicker(null)}>
+                                        <div onClick={(e) => e.stopPropagation()} className="relative bg-white rounded-xl shadow-2xl p-1">
+                                          <button onClick={() => setActiveDatePicker(null)} className="absolute -top-3 -right-3 bg-white text-gray-500 hover:text-red-500 rounded-full p-1 shadow-md z-[60]"><X size={20} /></button>
+                                          <MalayalamDatePicker
+                                            value={recurringDate.endDate}
+                                            onChange={(date) => setRecurringDate({ ...recurringDate, endDate: date })}
+                                            min={MIN_DATE}
+                                            max={MAX_DATE}
+                                            onClose={() => setActiveDatePicker(null)}
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex gap-2">
@@ -850,73 +969,100 @@ function TempleCounter() {
                     </div>
                   ) : (
                     <div className="relative">
-                      <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        className={`w-full p-2 border rounded ${locked ? 'bg-gray-100' : ''} cursor-pointer`}
-                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                        onKeyDown={focusNext}
-                        disabled={locked}
-                        min={MIN_DATE}
-                        max={MAX_DATE}
-                      />
+                      <div
+                        className={`flex items-center w-full p-2 border rounded cursor-pointer transition-colors ${locked ? 'bg-gray-100' : 'bg-white hover:border-orange-300 focus-within:ring-2 focus-within:ring-orange-500/20'}`}
+                        onClick={() => !locked && setActiveDatePicker('oneDay')}
+                      >
+                        <Calendar size={18} className="text-orange-500 mr-3" />
+                        <div className="flex-1">
+                          <span className="block text-sm font-bold text-gray-800">
+                            {new Date(formData.date).toLocaleDateString('en-GB')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {activeDatePicker === 'oneDay' && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                          {/* Backdrop click handler */}
+                          <div
+                            className="absolute inset-0"
+                            onClick={() => setActiveDatePicker(null)}
+                          />
+
+                          {/* Modal Content */}
+                          <div className="relative z-10 shadow-2xl rounded-2xl animate-in zoom-in-95 duration-200">
+                            <MalayalamDatePicker
+                              value={formData.date}
+                              onChange={(date) => {
+                                setFormData(prev => ({ ...prev, date }));
+                              }}
+                              onClose={() => setActiveDatePicker(null)}
+                              min={MIN_DATE}
+                              max={MAX_DATE}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
+
+
             {/* Posting Details for 'NP' Code */}
-            {formData.vazhipadu.toLowerCase().includes('np') && (
-              <div className="mb-6 pb-6 border-b border-gray-100">
-                <h3 className="text-sm font-semibold uppercase text-secondary mb-4 flex items-center gap-2">
-                  <span className="dot-primary"></span>
-                  Postal Details (Optional)
-                </h3>
-                <div className="grid gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-secondary mb-1">
-                        Phone Number
-                      </label>
-                      <input
-                        type="number"
-                        value={postingData.phone}
-                        onChange={(e) => setPostingData({ ...postingData, phone: e.target.value })}
-                        placeholder="Contact Number"
-                        className="w-full"
-                      />
+            {
+              formData.vazhipadu.toLowerCase().includes('np') && (
+                <div className="mb-6 pb-6 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold uppercase text-secondary mb-4 flex items-center gap-2">
+                    <span className="dot-primary"></span>
+                    Postal Details (Optional)
+                  </h3>
+                  <div className="grid gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-secondary mb-1">
+                          Phone Number
+                        </label>
+                        <input
+                          type="number"
+                          value={postingData.phone}
+                          onChange={(e) => setPostingData({ ...postingData, phone: e.target.value })}
+                          placeholder="Contact Number"
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-secondary mb-1">
+                          Pincode
+                        </label>
+                        <input
+                          type="number"
+                          value={postingData.pincode}
+                          onChange={(e) => setPostingData({ ...postingData, pincode: e.target.value })}
+                          placeholder="6XXXXX"
+                          className="w-full"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-secondary mb-1">
-                        Pincode
+                        Address
                       </label>
-                      <input
-                        type="number"
-                        value={postingData.pincode}
-                        onChange={(e) => setPostingData({ ...postingData, pincode: e.target.value })}
-                        placeholder="6XXXXX"
-                        className="w-full"
+                      <TransliterationInput
+                        value={postingData.address}
+                        onChange={(val) => setPostingData({ ...postingData, address: val })}
+                        placeholder="Postal Address (Use toggle for Malayalam)"
+                        className="w-full p-2 border rounded"
+                        multiline={true}
+                        rows={3}
                       />
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-secondary mb-1">
-                      Address
-                    </label>
-                    <TransliterationInput
-                      value={postingData.address}
-                      onChange={(val) => setPostingData({ ...postingData, address: val })}
-                      placeholder="Postal Address (Use toggle for Malayalam)"
-                      className="w-full p-2 border rounded"
-                      multiline={true}
-                      rows={3}
-                    />
                   </div>
                 </div>
-              </div>
-            )}
+              )
+            }
 
             <div className="mb-6">
               <div
@@ -1029,11 +1175,11 @@ function TempleCounter() {
             >
               <Plus size={18} /> Add Person to List
             </button>
-          </form>
-        </div>
+          </form >
+        </div >
 
         {/* Right Column: Receipt Summary & Actions */}
-        <div className="flex flex-col h-full gap-6 w">
+        < div className="flex flex-col h-full gap-6 w" >
           <div
             style={{
               backgroundColor: "#ffffff",
@@ -1362,11 +1508,11 @@ function TempleCounter() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
 
       {/* Hidden Print Area */}
-      <div id="print-area">
+      < div id="print-area" >
         <div className="bill-container">
           <h2 className="bill-title">Temple Receipt</h2>
           <div className="bill-header">
@@ -1424,99 +1570,101 @@ function TempleCounter() {
             <p>Om Namah Shivaya</p>
           </div>
         </div>
-      </div>
+      </div >
       {/* Confirmation Modal */}
       {/* Confirmation Modal */}
       {/* Confirmation Modal */}
-      {showConfirmModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.3)',
-          backdropFilter: 'blur(5px)',
-          zIndex: 99999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <div
-            className="card"
-            style={{
-              width: '100%',
-              maxWidth: '360px',
-              padding: '2rem',
-              margin: '1rem',
-              border: 'none',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center'
-            }}
-          >
-            <div style={{ marginBottom: '1rem', fontSize: '2.5rem' }}>📅</div>
+      {
+        showConfirmModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div
+              className="card"
+              style={{
+                width: '100%',
+                maxWidth: '360px',
+                padding: '2rem',
+                margin: '1rem',
+                border: 'none',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center'
+              }}
+            >
+              <div style={{ marginBottom: '1rem', fontSize: '2.5rem' }}>📅</div>
 
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1f2937' }}>Confirm Date</h3>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-              Please verify the date below before saving the receipt.
-            </p>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#1f2937' }}>Confirm Date</h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+                Please verify the date below before saving the receipt.
+              </p>
 
-            {/* Date Box */}
-            <div style={{
-              width: '100%',
-              backgroundColor: '#fff7ed',
-              border: '1px solid #ffedd5',
-              borderRadius: '0.5rem',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              textAlign: 'left'
-            }}>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold', color: '#ea580c', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>
-                Selected Date
+              {/* Date Box */}
+              <div style={{
+                width: '100%',
+                backgroundColor: '#fff7ed',
+                border: '1px solid #ffedd5',
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                marginBottom: '1.5rem',
+                textAlign: 'left'
+              }}>
+                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold', color: '#ea580c', marginBottom: '0.25rem', letterSpacing: '0.05em' }}>
+                  Selected Date
+                </div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>
+                  {new Date(formData.date).toLocaleDateString("en-GB", {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </div>
               </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>
-                {new Date(formData.date).toLocaleDateString("en-GB", {
-                  weekday: 'short',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric'
-                })}
-              </div>
-            </div>
 
-            {/* Buttons */}
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <button
-                onClick={confirmDateAndSave}
-                className="btn-primary"
-                style={{
-                  width: '100%',
-                  justifyContent: 'center',
-                  padding: '0.75rem',
-                  fontSize: '1rem'
-                }}
-              >
-                Yes, Confirm and Save
-              </button>
-              <button
-                onClick={() => {
-                  setShowConfirmModal(false);
-                  document.querySelector('input[type="date"]')?.focus();
-                }}
-                className="btn-secondary"
-                style={{
-                  width: '100%',
-                  justifyContent: 'center',
-                  padding: '0.75rem',
-                  fontSize: '1rem'
-                }}
-              >
-                Change Date
-              </button>
+              {/* Buttons */}
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <button
+                  onClick={confirmDateAndSave}
+                  className="btn-primary"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '0.75rem',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Yes, Confirm and Save
+                </button>
+                <button
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    document.querySelector('input[type="date"]')?.focus();
+                  }}
+                  className="btn-secondary"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '0.75rem',
+                    fontSize: '1rem'
+                  }}
+                >
+                  Change Date
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Print Area - Visible ONLY during print */}
       <div id="print-area">
